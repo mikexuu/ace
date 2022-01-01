@@ -1,0 +1,162 @@
+<html>
+
+<body>
+    <h1>Ace Game Setup</h1>
+
+    <button id='addPlayer'>Add Player</button>
+    <p>List of players:</p>
+    <ul id='playerList'></ul>
+    <br>
+    <button id='startSetup'>START SETUP</button>
+    <hr>
+    <div id='game_logs'></div>
+</body>
+
+
+<script type='text/javascript'>
+    document.getElementById('addPlayer').addEventListener('click', function () {
+        var playerList = document.getElementById('playerList');
+        var listCode = `
+            <div>
+                <label for="p_name">Name:</label>
+                <input type="text" class="p_name" size="12">
+                <label for="p_position">Position:</label>
+                <input type="text" class="p_position" size="4">
+                <label for="is_ace">Ace</label>
+                <input type="checkbox" class="is_ace">
+            </div>`;
+        var player = document.createElement("li");
+        player.innerHTML = listCode;
+        playerList.appendChild(player);
+    });
+
+    class Player {
+        constructor(name, position, isAce) {
+            this.name = name;
+            this.position = position;
+            this.isAce = isAce;
+        }
+    }
+
+    function comparePlayerRanking(a, b) {
+        if (a.position < b.position) {
+            return -1;
+        }
+        if (a.position > b.position) {
+            return 1;
+        }
+        return 0;
+    }
+
+    function clearGameLog() {
+        document.getElementById('game_logs').innerHTML = '';
+    }
+    function addGameLog(log) {
+        var gameLogs = document.getElementById('game_logs');
+        gameLogs.innerHTML += log;
+    }
+
+    document.getElementById('startSetup').addEventListener('click', function () {
+        clearGameLog();
+
+        var playerListItems = document.getElementById('playerList').getElementsByTagName('li');
+        var playerList = [];
+        var playerMap = {};
+        for (var i = 0; i <= playerListItems.length - 1; i++) {
+            var listItem = playerListItems[i];
+            var name = listItem.getElementsByClassName("p_name")[0].value;
+            var position = listItem.getElementsByClassName("p_position")[0].value;
+            var isAce = listItem.getElementsByClassName("is_ace")[0].checked;
+            if (!name || !position) {
+                return;
+            }
+            var player = new Player(name, position, isAce);
+            playerList.push(player)
+            playerMap[name] = player;
+        }
+
+        playerList.sort(comparePlayerRanking);
+        addGameLog('<h3>RANKING</h3>');
+        playerList.forEach(player => {
+            var log = '#' + player.position + ': ' + player.name;
+            if (player.isAce) {
+                log += ' (ACE)';
+            }
+            addGameLog('<p>' + log + '</p>');
+        });
+
+        gives = {};
+        processed = [];
+        aces = [];
+        playerList.forEach(player => {
+            if (!player.isAce) {
+                if (aces.length > 0) {
+                    if (!(player.name in gives)) {
+                        gives[player.name] = [];
+                    }
+                    gives[player.name].push(...aces);
+                }
+                processed.push(player);
+            } else {
+                if (processed.length > 0) {
+                    if (!(player.name in gives)) {
+                        gives[player.name] = [];
+                    }
+                    gives[player.name].push(...processed);
+                }
+                aces.push(player);
+            }
+        });
+
+        receives = {};
+        for (var giver in gives) {
+            receivers = gives[giver];
+            receivers.forEach(receiver => {
+                if (!(receiver.name in receives)) {
+                    receives[receiver.name] = [];
+                }
+                var giverPlayer = playerMap[giver];
+                receives[receiver.name].push(giverPlayer)
+                receives[receiver.name].sort(comparePlayerRanking);
+            });
+        }
+
+        function getPlayerNames(players) {
+            var names = [];
+            players.forEach(p => names.push(p.name));
+            return names;
+        }
+
+        addGameLog('<h3>LARGEST CARD EXCHANGE</h3>');
+        playerList.forEach(player => {
+            if (player.name in gives) {
+                var log = '<p>';
+                var card = gives[player.name].length == 1 ? 'card' : 'cards';
+                var take = gives[player.name].length == 1 ? 'takes' : 'take';
+                log += player.name + ' starts pool of ' + gives[player.name].length + ' largest ' + card + '  --->  ';
+                log += getPlayerNames(gives[player.name]).join(', ') + ' ' + take + ' ' + card + ' from pool.';
+                log += '</p>';
+                addGameLog(log);
+            }
+        });
+
+        addGameLog('<h3>RETURNS</h3>');
+        playerList.forEach(player => {
+            if (player.name in receives) {
+                var log = '<p>';
+                var card = receives[player.name].length == 1 ? 'card' : 'cards';
+                var take = receives[player.name].length == 1 ? 'takes' : 'take';
+                log += player.name + ' starts pool of any ' + receives[player.name].length + ' ' + card + '  --->  ';
+                log += getPlayerNames(receives[player.name]).join(', ') + ' ' + take + ' ' + card + ' from pool.';
+                log += '</p>';
+                addGameLog(log);
+            }
+        });
+
+
+        addGameLog('<h3>START GAME!!</h3>');
+
+    });
+</script>
+
+</html>
