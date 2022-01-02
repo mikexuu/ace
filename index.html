@@ -1,13 +1,17 @@
-<html>
-
-<body>
+<!DOCTYPE html>
+<head>
+    <title>Ace Game Setup</title>
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+</head>
+<body style="width: 80%; margin-left: 10%; margin-right: 10%;">
     <h1>Ace Game Setup</h1>
 
-    <button id='addPlayer'>Add Player</button>
-    <p>List of players:</p>
-    <ul id='playerList'></ul>
+    <button style="margin-right: 5%;" id='addPlayer'>Add Player</button>
+    <button style="background-color: greenyellow;" id='startSetup'>Start</button>
+    <p>Player list (name, finished position, ace):</p>
+    <ul id='playerList' style="list-style-type: none; margin: 0; padding: 0;"></ul>
     <br>
-    <button id='startSetup'>START SETUP</button>
     <hr>
     <div id='game_logs'></div>
 </body>
@@ -16,14 +20,16 @@
 <script type='text/javascript'>
     document.getElementById('addPlayer').addEventListener('click', function () {
         var playerList = document.getElementById('playerList');
+        var playerCount = playerList.getElementsByTagName('li').length;
         var listCode = `
-            <div>
-                <label for="p_name">Name:</label>
-                <input type="text" class="p_name" size="12">
-                <label for="p_position">Position:</label>
-                <input type="text" class="p_position" size="4">
-                <label for="is_ace">Ace</label>
-                <input type="checkbox" class="is_ace">
+            <div style="margin-bottom: 5px;">
+                <input type="text" class="p_name" size="12" style="margin-right: 3px" placeholder="Name">
+                <label for="p_position">#:</label>
+                <input type="number" class="p_position" style="width: 35px; margin-right: 3px">
+                <label for="${playerCount}_ace" style="background-color: lightgray; border-radius: 5px; padding-left: 5px; padding-right: 5px;">
+                    Ace
+                    <input type="checkbox" class="is_ace" id="${playerCount}_ace" style="position: relative; vertical-align: text-bottom;">
+                </label>
             </div>`;
         var player = document.createElement("li");
         player.innerHTML = listCode;
@@ -68,7 +74,7 @@
             var position = listItem.getElementsByClassName("p_position")[0].value;
             var isAce = listItem.getElementsByClassName("is_ace")[0].checked;
             if (!name || !position) {
-                return;
+                continue;
             }
             var player = new Player(name, position, isAce);
             playerList.push(player)
@@ -76,7 +82,7 @@
         }
 
         playerList.sort(comparePlayerRanking);
-        addGameLog('<h3>RANKING</h3>');
+        addGameLog('<h3>RANKING:</h3>');
         playerList.forEach(player => {
             var log = '#' + player.position + ': ' + player.name;
             if (player.isAce) {
@@ -127,7 +133,7 @@
             return names;
         }
 
-        addGameLog('<h3>LARGEST CARD EXCHANGE</h3>');
+        addGameLog('<h3>LARGEST CARD EXCHANGE:</h3>');
         playerList.forEach(player => {
             if (player.name in gives) {
                 var log = '<p>';
@@ -140,7 +146,7 @@
             }
         });
 
-        addGameLog('<h3>RETURNS</h3>');
+        addGameLog('<h3>RETURNS:</h3>');
         playerList.forEach(player => {
             if (player.name in receives) {
                 var log = '<p>';
